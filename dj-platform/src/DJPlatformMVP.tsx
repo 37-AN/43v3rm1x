@@ -11,6 +11,7 @@ const DJPlatformMVP = () => {
   const [earnings] = useState(89.50);
   const [activeTab, setActiveTab] = useState('mixer');
   const [audioInitialized, setAudioInitialized] = useState(false);
+  const [showAudioNotification, setShowAudioNotification] = useState(false);
 
   // Simple audio context for demo
   const audioContext = useRef<AudioContext | null>(null);
@@ -34,6 +35,8 @@ const DJPlatformMVP = () => {
       }
       
       setAudioInitialized(true);
+      setShowAudioNotification(true);
+      setTimeout(() => setShowAudioNotification(false), 3000);
       console.log('Audio context initialized successfully');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
@@ -41,6 +44,29 @@ const DJPlatformMVP = () => {
       setAudioInitialized(true);
     }
   };
+
+  // Auto-initialize audio on first user interaction
+  useEffect(() => {
+    const handleUserInteraction = async () => {
+      if (!audioInitialized) {
+        await initializeAudio();
+        // Remove event listeners after initialization
+        document.removeEventListener('click', handleUserInteraction);
+        document.removeEventListener('keydown', handleUserInteraction);
+        document.removeEventListener('touchstart', handleUserInteraction);
+      }
+    };
+
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [audioInitialized]);
 
   // Simulated AI BPM sync
   useEffect(() => {
@@ -50,10 +76,28 @@ const DJPlatformMVP = () => {
     }
   }, [aiSyncEnabled, loadedTracks]);
 
-  const handlePlay = async (deck: string) => {
-    // Initialize audio on first play
+  const handlePlay = (deck: string) => {
+    // Initialize audio if not already done
     if (!audioInitialized) {
-      await initializeAudio();
+      initializeAudio();
+    }
+    
+    // Create a simple audio feedback
+    if (audioContext.current && audioContext.current.state === 'running') {
+      const oscillator = audioContext.current.createOscillator();
+      const gainNode = audioContext.current.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.current.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.current.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.current.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.current.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.current.currentTime + 0.1);
+      
+      oscillator.start(audioContext.current.currentTime);
+      oscillator.stop(audioContext.current.currentTime + 0.1);
     }
     
     setIsPlaying(prev => ({ ...prev, [deck]: !prev[deck] }));
@@ -284,6 +328,15 @@ const DJPlatformMVP = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
+      {/* Audio Notification */}
+      {showAudioNotification && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span>Audio System Ready! 🎵</span>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-black/20 backdrop-blur-lg border-b border-gray-800">
         <div className="container mx-auto px-6 py-4">
@@ -295,13 +348,15 @@ const DJPlatformMVP = () => {
               </h1>
             </div>
             
-            {/* Audio Status Indicator */}
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${audioInitialized ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-              <span className="text-sm text-gray-300">
-                {audioInitialized ? 'Audio Ready' : 'Click Play to Initialize Audio'}
-              </span>
-            </div>
+            {/* Audio Status Indicator - Only show when not initialized */}
+            {!audioInitialized && (
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                <span className="text-sm text-gray-300">
+                  Initializing Audio...
+                </span>
+              </div>
+            )}
             
             <nav className="flex space-x-6">
               <button
