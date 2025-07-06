@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: dj-platform
+    env: static
+    buildCommand: chmod +x deploy.sh && ./deploy.sh
+    staticPublishPath: ./dj-platform/build
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: CI
+        value: true
+    autoDeploy: true
+    branch: main
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable 
