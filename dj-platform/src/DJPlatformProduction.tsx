@@ -112,26 +112,43 @@ const DJPlatformProduction: React.FC = () => {
     deckB: new Array(256).fill(0)
   });
 
+  // Mobile audio context reference for direct control
+  const mobileAudioRef = useRef<{
+    context?: AudioContext;
+    oscillators?: { [key: string]: OscillatorNode };
+  }>({});
+
+  // Initialize mobile-friendly audio
+  const initMobileAudio = async () => {
+    try {
+      if (!mobileAudioRef.current.context) {
+        mobileAudioRef.current.context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        mobileAudioRef.current.oscillators = {};
+        console.log('Mobile audio context created');
+      }
+      
+      if (mobileAudioRef.current.context.state === 'suspended') {
+        await mobileAudioRef.current.context.resume();
+        console.log('Mobile audio context resumed');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Mobile audio initialization failed:', error);
+      return false;
+    }
+  };
+
   // Initialize audio engine
   useEffect(() => {
     const initAudio = async () => {
       try {
-        audioEngineRef.current = new AudioEngine();
-        
-        // Add timeout to prevent infinite loading
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Audio initialization timeout')), 5000);
-        });
-        
-        await Promise.race([
-          audioEngineRef.current.resumeContext(),
-          timeoutPromise
-        ]);
-        
+        // Skip complex audio engine initialization on first load
+        // Will be initialized on first play button press
+        console.log('Deferring audio engine initialization until user interaction');
         setIsInitialized(true);
       } catch (error) {
         console.error('Failed to initialize audio:', error);
-        // Set initialized anyway to prevent infinite loading
         setIsInitialized(true);
       }
     };
@@ -225,12 +242,76 @@ const DJPlatformProduction: React.FC = () => {
   };
 
   // Deck controls
-  const handlePlay = (deck: 'A' | 'B') => {
+  const handlePlay = async (deck: 'A' | 'B') => {
     const deckState = deck === 'A' ? deckA : deckB;
     const setDeckState = deck === 'A' ? setDeckA : setDeckB;
 
-    // For demo purposes, allow play even without audio engine
+    console.log(`Attempting to ${deckState.isPlaying ? 'stop' : 'play'} deck ${deck}`);
+
     if (deckState.track) {
+      // Try mobile audio first
+      const mobileAudioReady = await initMobileAudio();
+      
+      if (mobileAudioReady && mobileAudioRef.current.context) {
+        try {
+          const audioContext = mobileAudioRef.current.context;
+          const oscillators = mobileAudioRef.current.oscillators!;
+          
+          if (deckState.isPlaying) {
+            // Stop audio
+            if (oscillators[deck]) {
+              oscillators[deck].stop();
+              delete oscillators[deck];
+              console.log(`Stopped mobile audio for deck ${deck}`);
+            }
+          } else {
+            // Start audio - create a simple tone for demo
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Different frequencies for different decks to simulate tracks
+            const frequency = deck === 'A' ? 220 : 330; // Lower frequencies, more pleasant
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = 'square'; // More electronic sound
+            
+            // Very low volume but audible
+            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+            
+            // Add some modulation to make it more interesting
+            const lfo = audioContext.createOscillator();
+            const lfoGain = audioContext.createGain();
+            lfo.connect(lfoGain);
+            lfoGain.connect(oscillator.frequency);
+            lfo.frequency.setValueAtTime(deck === 'A' ? 2 : 3, audioContext.currentTime);
+            lfoGain.gain.setValueAtTime(10, audioContext.currentTime);
+            lfo.start();
+            
+            oscillator.start();
+            oscillators[deck] = oscillator;
+            
+            console.log(`Started mobile audio for deck ${deck} at ${frequency}Hz with modulation`);
+          }
+        } catch (error) {
+          console.log('Mobile audio playback error:', error);
+        }
+      }
+
+      // Try to initialize full audio engine if not already done
+      if (!audioEngineRef.current && !deckState.isPlaying) {
+        try {
+          console.log('Attempting to initialize full audio engine...');
+          audioEngineRef.current = new AudioEngine();
+          await audioEngineRef.current.resumeContext();
+          console.log('Full audio engine initialized successfully');
+        } catch (error) {
+          console.log('Full audio engine failed, continuing with mobile audio:', error);
+        }
+      }
+
+      // Try to use full audio engine if available
       if (audioEngineRef.current) {
         try {
           if (deckState.isPlaying) {
@@ -241,17 +322,23 @@ const DJPlatformProduction: React.FC = () => {
             setDeckState(prev => ({ ...prev, track: newTrack }));
           }
         } catch (error) {
-          console.log('Audio playback simulated for demo:', error);
+          console.log('Full audio engine error, using mobile audio:', error);
         }
       }
       
       // Always toggle play state for UI feedback
       setDeckState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+      console.log(`Deck ${deck} is now ${!deckState.isPlaying ? 'playing' : 'stopped'}`);
       
       // Award tokens for mixing
       if (!deckState.isPlaying) {
         setTokenBalance(prev => prev + 2);
         setEarnings(prev => prev + 0.25);
+      }
+
+      // Provide haptic feedback on mobile
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
       }
     }
   };
@@ -465,14 +552,19 @@ const DJPlatformProduction: React.FC = () => {
         <div className="text-center text-white">
           <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent 
                          rounded-full mx-auto mb-4"></div>
-          <h2 className="text-xl font-bold mb-2">Initializing Audio Engine</h2>
-          <p className="text-gray-300">Setting up professional DJ platform...</p>
+          <h2 className="text-xl font-bold mb-2">🎧 DJ Platform Ready</h2>
+          <p className="text-gray-300 mb-4">Demo tracks loaded • Mobile optimized</p>
           <button 
-            onClick={() => setIsInitialized(true)}
-            className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+            onClick={async () => {
+              console.log('Initializing platform...');
+              await initMobileAudio();
+              setIsInitialized(true);
+            }}
+            className="px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg transition-colors font-medium text-lg shadow-lg"
           >
-            Skip Audio Setup
+            🚀 Start DJing
           </button>
+          <p className="text-xs text-gray-400 mt-3">Tap to enable audio on mobile devices</p>
         </div>
       </div>
     );
@@ -706,15 +798,23 @@ const DJPlatformProduction: React.FC = () => {
                 <div className="flex justify-center items-center gap-6">
                   <div className="flex flex-col items-center gap-2">
                     <button
-                      onClick={() => handlePlay('A')}
+                      onClick={() => {
+                        console.log('Deck A button clicked');
+                        handlePlay('A');
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        console.log('Deck A touch started');
+                      }}
                       className={`
                         w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl border-4
                         ${deckA.isPlaying 
                           ? 'bg-red-600 hover:bg-red-700 border-red-300 animate-pulse' 
                           : 'bg-green-500 hover:bg-green-600 border-green-300'
                         }
-                        touch-manipulation active:scale-90 transform hover:scale-105
+                        touch-manipulation active:scale-90 transform hover:scale-105 cursor-pointer
                       `}
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       {deckA.isPlaying ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
                     </button>
@@ -723,15 +823,23 @@ const DJPlatformProduction: React.FC = () => {
                   </div>
                   <div className="flex flex-col items-center gap-2">
                     <button
-                      onClick={() => handlePlay('B')}
+                      onClick={() => {
+                        console.log('Deck B button clicked');
+                        handlePlay('B');
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        console.log('Deck B touch started');
+                      }}
                       className={`
                         w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl border-4
                         ${deckB.isPlaying 
                           ? 'bg-red-600 hover:bg-red-700 border-red-300 animate-pulse' 
                           : 'bg-purple-500 hover:bg-purple-600 border-purple-300'
                         }
-                        touch-manipulation active:scale-90 transform hover:scale-105
+                        touch-manipulation active:scale-90 transform hover:scale-105 cursor-pointer
                       `}
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       {deckB.isPlaying ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
                     </button>
@@ -740,6 +848,16 @@ const DJPlatformProduction: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Mobile Debug Info */}
+              {isMobile && (
+                <div className="mb-3 text-center">
+                  <div className="text-xs text-gray-400 bg-gray-800 bg-opacity-50 rounded px-2 py-1 inline-block">
+                    🔊 Audio: {mobileAudioRef.current.context ? 'Ready' : 'Initializing'} | 
+                    Engine: {audioEngineRef.current ? 'Loaded' : 'Demo'}
+                  </div>
+                </div>
+              )}
               
               {/* Mobile Crossfader - Compact */}
               <div className="mb-3">
