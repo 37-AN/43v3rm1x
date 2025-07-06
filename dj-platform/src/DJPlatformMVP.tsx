@@ -13,6 +13,11 @@ const DJPlatformMVP = () => {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [showAudioNotification, setShowAudioNotification] = useState(false);
 
+  // Set document title
+  useEffect(() => {
+    document.title = '43v3rm1x - DJ Platform';
+  }, []);
+
   // Simple audio context for demo
   const audioContext = useRef<AudioContext | null>(null);
   const [tracks] = useState([
