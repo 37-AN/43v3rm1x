@@ -1,11 +1,11 @@
 import React from 'react';
-import DJPlatformEnhanced from './DJPlatformEnhanced';
+import DJPlatformAdvanced from './DJPlatformAdvanced';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <DJPlatformEnhanced />
+      <DJPlatformAdvanced />
     </div>
   );
 }
