@@ -47,9 +47,21 @@ const DJPlatformProduction: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   
+  // Create demo tracks for immediate playability
+  const createDemoTrack = (name: string, artist: string, bpm: number, key: string): AudioTrack => ({
+    id: `demo-${name.toLowerCase().replace(' ', '-')}`,
+    name,
+    artist,
+    file: new File([], `${name}.mp3`, { type: 'audio/mp3' }),
+    bpm,
+    key,
+    duration: 180, // 3 minutes
+    waveformData: Array.from({ length: 1000 }, () => Math.random() * 0.8 + 0.1)
+  });
+
   // Deck States
   const [deckA, setDeckA] = useState<DeckState>({
-    track: null,
+    track: createDemoTrack('Summer Vibes', 'DJ Alex', 128, 'Am'),
     isPlaying: false,
     currentTime: 0,
     volume: 80,
@@ -64,7 +76,7 @@ const DJPlatformProduction: React.FC = () => {
   });
   
   const [deckB, setDeckB] = useState<DeckState>({
-    track: null,
+    track: createDemoTrack('Night Drive', 'Luna Music', 132, 'Gm'),
     isPlaying: false,
     currentTime: 0,
     volume: 80,
@@ -165,6 +177,31 @@ const DJPlatformProduction: React.FC = () => {
     return () => clearInterval(interval);
   }, [isRecording]);
 
+  // Demo track time progression
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    const updatePlaybackTime = () => {
+      if (deckA.isPlaying) {
+        setDeckA(prev => ({
+          ...prev,
+          currentTime: Math.min((prev.currentTime + 1), prev.track?.duration || 180)
+        }));
+      }
+      if (deckB.isPlaying) {
+        setDeckB(prev => ({
+          ...prev,
+          currentTime: Math.min((prev.currentTime + 1), prev.track?.duration || 180)
+        }));
+      }
+    };
+    
+    if (deckA.isPlaying || deckB.isPlaying) {
+      interval = setInterval(updatePlaybackTime, 1000);
+    }
+    
+    return () => clearInterval(interval);
+  }, [deckA.isPlaying, deckB.isPlaying]);
+
   // File upload handler
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, deck: 'A' | 'B') => {
     const file = event.target.files?.[0];
@@ -189,20 +226,26 @@ const DJPlatformProduction: React.FC = () => {
 
   // Deck controls
   const handlePlay = (deck: 'A' | 'B') => {
-    if (!audioEngineRef.current) return;
-
     const deckState = deck === 'A' ? deckA : deckB;
     const setDeckState = deck === 'A' ? setDeckA : setDeckB;
 
+    // For demo purposes, allow play even without audio engine
     if (deckState.track) {
-      if (deckState.isPlaying) {
-        audioEngineRef.current.stopTrack(deckState.track);
-      } else {
-        const newTrack = audioEngineRef.current.createTrack(deckState.track, deck === 'A' ? 'left' : 'right');
-        audioEngineRef.current.playTrack(newTrack, deckState.currentTime);
-        setDeckState(prev => ({ ...prev, track: newTrack }));
+      if (audioEngineRef.current) {
+        try {
+          if (deckState.isPlaying) {
+            audioEngineRef.current.stopTrack(deckState.track);
+          } else {
+            const newTrack = audioEngineRef.current.createTrack(deckState.track, deck === 'A' ? 'left' : 'right');
+            audioEngineRef.current.playTrack(newTrack, deckState.currentTime);
+            setDeckState(prev => ({ ...prev, track: newTrack }));
+          }
+        } catch (error) {
+          console.log('Audio playback simulated for demo:', error);
+        }
       }
       
+      // Always toggle play state for UI feedback
       setDeckState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
       
       // Award tokens for mixing
@@ -656,38 +699,44 @@ const DJPlatformProduction: React.FC = () => {
 
           {/* Mobile Controls - Quick Access */}
           {isMobile && (
-            <div className="mb-3 bg-black bg-opacity-40 backdrop-blur-sm rounded-lg p-3 border border-gray-700">
-              {/* Compact Play Controls */}
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-bold">Quick Controls</h3>
-                <div className="flex gap-2">
-                  <div className="flex flex-col items-center gap-1">
+            <div className="mb-3 bg-black bg-opacity-80 backdrop-blur-sm rounded-lg p-4 border-2 border-blue-500 shadow-xl relative z-10 mx-1">
+              {/* Mobile Play Controls - Prominent */}
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-bold text-white mb-4">🎧 DJ Controls</h3>
+                <div className="flex justify-center items-center gap-6">
+                  <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={() => handlePlay('A')}
-                      disabled={!deckA.track}
                       className={`
-                        w-12 h-12 rounded-full flex items-center justify-center transition-all
-                        ${deckA.isPlaying ? 'bg-red-600' : 'bg-green-600'}
-                        disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
+                        w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl border-4
+                        ${deckA.isPlaying 
+                          ? 'bg-red-600 hover:bg-red-700 border-red-300 animate-pulse' 
+                          : 'bg-green-500 hover:bg-green-600 border-green-300'
+                        }
+                        touch-manipulation active:scale-90 transform hover:scale-105
                       `}
                     >
-                      {deckA.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                      {deckA.isPlaying ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
                     </button>
-                    <span className="text-xs text-gray-300">A</span>
+                    <span className="text-sm font-bold text-white">DECK A</span>
+                    <span className="text-xs text-blue-300 font-medium">{deckA.track?.name || 'No Track'}</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={() => handlePlay('B')}
-                      disabled={!deckB.track}
                       className={`
-                        w-12 h-12 rounded-full flex items-center justify-center transition-all
-                        ${deckB.isPlaying ? 'bg-red-600' : 'bg-green-600'}
-                        disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
+                        w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl border-4
+                        ${deckB.isPlaying 
+                          ? 'bg-red-600 hover:bg-red-700 border-red-300 animate-pulse' 
+                          : 'bg-purple-500 hover:bg-purple-600 border-purple-300'
+                        }
+                        touch-manipulation active:scale-90 transform hover:scale-105
                       `}
                     >
-                      {deckB.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                      {deckB.isPlaying ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
                     </button>
-                    <span className="text-xs text-gray-300">B</span>
+                    <span className="text-sm font-bold text-white">DECK B</span>
+                    <span className="text-xs text-purple-300 font-medium">{deckB.track?.name || 'No Track'}</span>
                   </div>
                 </div>
               </div>
