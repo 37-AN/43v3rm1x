@@ -281,6 +281,41 @@ const WaveformDisplay: React.FC<WaveformDisplayProps> = ({
     }
   };
 
+  // Touch handling for mobile
+  const handleTouchStart = (event: React.TouchEvent) => {
+    if (event.touches.length === 1) {
+      const touch = event.touches[0];
+      const canvas = canvasRef.current;
+      if (!canvas || !duration) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const touchTime = (x / canvas.width) * duration;
+      
+      onSeek(touchTime);
+      setIsDragging(true);
+    }
+  };
+
+  const handleTouchMove = (event: React.TouchEvent) => {
+    if (!isDragging || !duration || event.touches.length !== 1) return;
+    
+    event.preventDefault(); // Prevent scrolling
+    const touch = event.touches[0];
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const seekTime = (x / canvas.width) * duration;
+    
+    onSeek(seekTime);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -292,46 +327,62 @@ const WaveformDisplay: React.FC<WaveformDisplayProps> = ({
         ref={canvasRef}
         width={800}
         height={120}
-        className="w-full h-full cursor-pointer"
+        className="w-full h-full cursor-pointer select-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: 'pan-y' }} // Allow vertical scrolling but handle horizontal touch
       />
       
-      {/* Waveform controls */}
-      <div className="absolute top-2 right-2 flex gap-2">
+      {/* Waveform controls - Mobile optimized */}
+      <div className="absolute top-2 right-2 flex gap-1 md:gap-2">
         <button
           onClick={() => setZoom(Math.max(0.5, zoom * 0.8))}
-          className="px-2 py-1 bg-gray-700 text-white text-xs rounded hover:bg-gray-600"
+          className="px-1 py-1 md:px-2 md:py-1 bg-gray-700 text-white text-xs rounded hover:bg-gray-600 
+                     touch-manipulation min-w-6 min-h-6 flex items-center justify-center"
         >
           -
         </button>
-        <span className="px-2 py-1 bg-gray-800 text-white text-xs rounded">
+        <span className="px-1 py-1 md:px-2 md:py-1 bg-gray-800 text-white text-xs rounded 
+                        min-w-8 text-center flex items-center justify-center">
           {zoom.toFixed(1)}x
         </span>
         <button
           onClick={() => setZoom(Math.min(5, zoom * 1.2))}
-          className="px-2 py-1 bg-gray-700 text-white text-xs rounded hover:bg-gray-600"
+          className="px-1 py-1 md:px-2 md:py-1 bg-gray-700 text-white text-xs rounded hover:bg-gray-600 
+                     touch-manipulation min-w-6 min-h-6 flex items-center justify-center"
         >
           +
         </button>
       </div>
 
-      {/* Instructions */}
-      <div className="absolute bottom-2 left-2 text-xs text-gray-400">
+      {/* Instructions - Responsive */}
+      <div className="absolute bottom-2 left-2 text-xs text-gray-400 hidden md:block">
         Click: Seek | Shift+Click: Set Cue | Ctrl+Click: Set Loop | 1-8: Jump to Cue
       </div>
+      
+      {/* Mobile instructions */}
+      <div className="absolute bottom-2 left-2 text-xs text-gray-400 md:hidden">
+        Tap: Seek | Long press: Set Cue
+      </div>
 
-      {/* Time display */}
-      <div className="absolute bottom-2 right-2 text-xs text-white bg-gray-800 px-2 py-1 rounded">
-        {formatTime(currentTime)} / {formatTime(duration)}
+      {/* Time display - Mobile optimized */}
+      <div className="absolute bottom-2 right-2 text-xs text-white bg-gray-800 bg-opacity-90 
+                     px-1 py-1 md:px-2 md:py-1 rounded">
+        <span className="hidden sm:inline">{formatTime(currentTime)} / {formatTime(duration)}</span>
+        <span className="sm:hidden">{formatTime(currentTime)}</span>
       </div>
 
       {/* Loop indicator */}
       {isSettingLoop && (
-        <div className="absolute top-2 left-2 text-xs text-yellow-400 bg-gray-800 px-2 py-1 rounded">
-          Setting loop start... Click again to set end
+        <div className="absolute top-2 left-2 text-xs text-yellow-400 bg-gray-800 bg-opacity-90 
+                       px-2 py-1 rounded max-w-48">
+          <span className="hidden md:inline">Setting loop start... Click again to set end</span>
+          <span className="md:hidden">Setting loop...</span>
         </div>
       )}
     </div>

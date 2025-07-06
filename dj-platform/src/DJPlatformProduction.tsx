@@ -440,50 +440,64 @@ const DJPlatformProduction: React.FC = () => {
                     text-white overflow-hidden">
       
       {/* Header */}
-      <header className="bg-black bg-opacity-30 backdrop-blur-sm border-b border-gray-700 p-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Disc3 className="w-8 h-8 text-blue-400" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 
-                          bg-clip-text text-transparent">
-              DJ Platform Pro
-            </h1>
+      <header className="bg-black bg-opacity-30 backdrop-blur-sm border-b border-gray-700 p-3 md:p-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+          {/* Top Row - Logo and Menu */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2 md:gap-4">
+              <Disc3 className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
+              <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 
+                            bg-clip-text text-transparent">
+                DJ Platform Pro
+              </h1>
+            </div>
+            
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 hover:bg-gray-700 rounded-lg"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
           
-          {/* Performance Stats */}
-          <div className="hidden md:flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Coins className="w-5 h-5 text-yellow-400" />
-              <span className="font-semibold">{tokenBalance.toLocaleString()}</span>
+          {/* Performance Stats - Mobile Optimized */}
+          <div className="flex items-center justify-between md:gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
+              <div className="flex items-center gap-1 md:gap-2 bg-gray-800 bg-opacity-50 px-2 py-1 rounded-lg">
+                <Coins className="w-3 h-3 md:w-5 md:h-5 text-yellow-400" />
+                <span className="font-semibold text-sm md:text-base">{tokenBalance.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2 bg-gray-800 bg-opacity-50 px-2 py-1 rounded-lg">
+                <TrendingUp className="w-3 h-3 md:w-5 md:h-5 text-green-400" />
+                <span className="font-semibold text-sm md:text-base">${earnings.toFixed(2)}</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1 md:gap-2 bg-gray-800 bg-opacity-50 px-2 py-1 rounded-lg">
+                <Zap className="w-3 h-3 md:w-5 md:h-5 text-purple-400" />
+                <span className="font-semibold text-sm md:text-base">{performance.mix_quality}%</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-400" />
-              <span className="font-semibold">${earnings.toFixed(2)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-purple-400" />
-              <span className="font-semibold">{performance.mix_quality}%</span>
-            </div>
+            
+            {/* Recording Status - Mobile Visible */}
+            {isRecording && (
+              <div className="flex items-center gap-1 bg-red-600 bg-opacity-20 px-2 py-1 rounded-lg animate-pulse">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span className="text-xs text-red-400">{formatTime(recordingTime)}</span>
+              </div>
+            )}
           </div>
-          
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 hover:bg-gray-700 rounded"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex h-screen">
+      <div className="flex flex-col md:flex-row h-screen">
         
         {/* Sidebar - Visualizers & Controls */}
         <div className={`
           ${isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
-          fixed md:relative w-80 md:w-96 h-full bg-black bg-opacity-40 backdrop-blur-sm
+          fixed md:relative w-full md:w-80 lg:w-96 h-full bg-black bg-opacity-40 backdrop-blur-sm
           border-r border-gray-700 transition-transform duration-300 z-50 overflow-y-auto
+          ${isMobile ? 'top-0 left-0' : ''}
         `}>
           
           {/* Visualizer Selection */}
@@ -601,20 +615,109 @@ const DJPlatformProduction: React.FC = () => {
         </div>
 
         {/* Main DJ Console */}
-        <div className="flex-1 p-4 overflow-y-auto">
+        <div className="flex-1 p-2 md:p-4 overflow-y-auto">
           
-          {/* Visualizer */}
-          <div className="mb-6 rounded-xl overflow-hidden border border-gray-700">
-            {renderVisualizer()}
+          {/* Visualizer - Responsive Height */}
+          <div className="mb-4 md:mb-6 rounded-xl overflow-hidden border border-gray-700">
+            <div className="h-48 md:h-64 lg:h-80">
+              {renderVisualizer()}
+            </div>
           </div>
 
-          {/* DJ Decks Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Mobile Controls - Quick Access */}
+          {isMobile && (
+            <div className="mb-4 bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">Quick Controls</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePlay('A')}
+                    disabled={!deckA.track}
+                    className={`
+                      w-12 h-12 rounded-full flex items-center justify-center transition-all
+                      ${deckA.isPlaying ? 'bg-red-600' : 'bg-green-600'}
+                      disabled:bg-gray-600 disabled:opacity-50
+                    `}
+                  >
+                    {deckA.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={() => handlePlay('B')}
+                    disabled={!deckB.track}
+                    className={`
+                      w-12 h-12 rounded-full flex items-center justify-center transition-all
+                      ${deckB.isPlaying ? 'bg-red-600' : 'bg-green-600'}
+                      disabled:bg-gray-600 disabled:opacity-50
+                    `}
+                  >
+                    {deckB.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Mobile Crossfader */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-center">Crossfader</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={crossfaderPosition}
+                  onChange={(e) => handleCrossfader(Number(e.target.value))}
+                  className="w-full h-8 bg-gray-700 rounded-lg appearance-none"
+                  style={{
+                    background: `linear-gradient(90deg, #3b82f6 0%, #3b82f6 ${crossfaderPosition}%, #6b7280 ${crossfaderPosition}%, #6b7280 100%)`
+                  }}
+                />
+                <div className="flex justify-between text-xs mt-1">
+                  <span className="text-blue-400">Deck A</span>
+                  <span className="font-bold">{crossfaderPosition}%</span>
+                  <span className="text-purple-400">Deck B</span>
+                </div>
+              </div>
+              
+              {/* Recording Button */}
+              <div className="flex gap-2">
+                {!isRecording ? (
+                  <button
+                    onClick={handleStartRecording}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 
+                             bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                  >
+                    <Radio className="w-4 h-4" />
+                    Record
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStopRecording}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 
+                             bg-red-600 hover:bg-red-700 rounded-lg transition-colors animate-pulse"
+                  >
+                    <Save className="w-4 h-4" />
+                    Stop ({formatTime(recordingTime)})
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* DJ Decks Layout - Mobile Optimized */}
+          <div className={`
+            ${isMobile 
+              ? 'flex flex-col gap-4' 
+              : 'grid grid-cols-1 lg:grid-cols-3 gap-6'
+            }
+          `}>
             
             {/* Deck A */}
-            <div className="bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-blue-400">Deck A</h2>
+            <div className={`
+              bg-black bg-opacity-40 backdrop-blur-sm rounded-xl border border-gray-700
+              ${isMobile ? 'p-4' : 'p-6'}
+            `}>
+              <div className="flex justify-between items-center mb-3 md:mb-4">
+                <h2 className={`font-bold text-blue-400 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                  Deck A
+                </h2>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -624,20 +727,27 @@ const DJPlatformProduction: React.FC = () => {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 
-                           rounded transition-colors text-sm"
+                  className={`
+                    flex items-center gap-2 bg-blue-600 hover:bg-blue-700 
+                    rounded transition-colors
+                    ${isMobile ? 'px-2 py-2 text-xs' : 'px-3 py-2 text-sm'}
+                  `}
                 >
-                  <Upload className="w-4 h-4" />
-                  Load Track
+                  <Upload className="w-3 h-3 md:w-4 md:h-4" />
+                  {!isMobile && 'Load Track'}
                 </button>
               </div>
 
               {/* Track Info */}
               {deckA.track && (
-                <div className="mb-4 p-3 bg-gray-800 rounded">
-                  <div className="text-sm font-medium">{deckA.track.name}</div>
-                  <div className="text-xs text-gray-400">{deckA.track.artist}</div>
-                  <div className="text-xs text-gray-400 mt-1">
+                <div className={`bg-gray-800 rounded ${isMobile ? 'mb-3 p-2' : 'mb-4 p-3'}`}>
+                  <div className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    {deckA.track.name}
+                  </div>
+                  <div className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                    {deckA.track.artist}
+                  </div>
+                  <div className={`text-gray-400 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                     {deckA.track.bpm} BPM • {deckA.track.key} • {formatTime(deckA.track.duration || 0)}
                   </div>
                 </div>
@@ -656,110 +766,158 @@ const DJPlatformProduction: React.FC = () => {
                   onSetHotCue={(cue, time) => handleSetHotCue('A', cue, time)}
                   onJumpToCue={(cue) => handleJumpToCue('A', cue)}
                   onSetLoop={(start, end) => handleSetLoop('A', start, end)}
-                  className="mb-4"
+                  className={isMobile ? 'mb-3' : 'mb-4'}
                 />
               )}
 
               {/* Deck Controls */}
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => handlePlay('A')}
-                    disabled={!deckA.track}
-                    className={`
-                      w-16 h-16 rounded-full flex items-center justify-center transition-all
-                      ${deckA.isPlaying
-                        ? 'bg-red-600 hover:bg-red-700'
-                        : 'bg-green-600 hover:bg-green-700'
-                      }
-                      disabled:bg-gray-600 disabled:cursor-not-allowed
-                    `}
-                  >
-                    {deckA.isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
-                  </button>
-                </div>
+              <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-4'}`}>
+                {!isMobile && (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => handlePlay('A')}
+                      disabled={!deckA.track}
+                      className={`
+                        w-16 h-16 rounded-full flex items-center justify-center transition-all
+                        ${deckA.isPlaying
+                          ? 'bg-red-600 hover:bg-red-700'
+                          : 'bg-green-600 hover:bg-green-700'
+                        }
+                        disabled:bg-gray-600 disabled:cursor-not-allowed
+                      `}
+                    >
+                      {deckA.isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
+                    </button>
+                  </div>
+                )}
 
                 {/* Volume */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Volume</label>
+                  <label className={`block font-medium mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    Volume ({deckA.volume}%)
+                  </label>
                   <input
                     type="range"
                     min="0"
                     max="100"
                     value={deckA.volume}
                     onChange={(e) => handleVolumeChange('A', Number(e.target.value))}
-                    className="w-full"
+                    className={`w-full ${isMobile ? 'h-6' : 'h-8'} bg-gray-700 rounded-lg appearance-none`}
+                    style={{
+                      background: `linear-gradient(90deg, #3b82f6 0%, #3b82f6 ${deckA.volume}%, #374151 ${deckA.volume}%, #374151 100%)`
+                    }}
                   />
                 </div>
 
-                {/* EQ */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">EQ</label>
+                {/* EQ - Compact for Mobile */}
+                <div className={`space-y-2 ${isMobile ? 'space-y-1' : 'space-y-2'}`}>
+                  <label className={`block font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    EQ
+                  </label>
                   {(['high', 'mid', 'low'] as const).map((band) => (
-                    <div key={band} className="flex items-center gap-3">
-                      <span className="w-12 text-xs uppercase">{band}</span>
+                    <div key={band} className={`flex items-center gap-2 ${isMobile ? 'gap-1' : 'gap-3'}`}>
+                      <span className={`text-xs uppercase ${isMobile ? 'w-8' : 'w-12'}`}>
+                        {band}
+                      </span>
                       <input
                         type="range"
                         min="-12"
                         max="12"
                         value={deckA.eq[band]}
                         onChange={(e) => handleEQChange('A', band, Number(e.target.value))}
-                        className="flex-1"
+                        className={`flex-1 ${isMobile ? 'h-4' : 'h-6'} bg-gray-700 rounded-lg appearance-none`}
+                        style={{
+                          background: `linear-gradient(90deg, ${deckA.eq[band] < 0 ? '#ef4444' : '#10b981'} 0%, ${deckA.eq[band] < 0 ? '#ef4444' : '#10b981'} ${((deckA.eq[band] + 12) / 24) * 100}%, #374151 ${((deckA.eq[band] + 12) / 24) * 100}%, #374151 100%)`
+                        }}
                       />
-                      <span className="w-8 text-xs">{deckA.eq[band]}dB</span>
+                      <span className={`text-xs ${isMobile ? 'w-6' : 'w-8'}`}>
+                        {deckA.eq[band] > 0 ? '+' : ''}{deckA.eq[band]}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Hot Cues */}
-              <HotCueSystem
-                hotCues={deckA.hotCues}
-                onSetCue={(cue, pos) => handleSetHotCue('A', cue, pos)}
-                onJumpToCue={(cue) => handleJumpToCue('A', cue)}
-                onDeleteCue={(cue) => handleDeleteCue('A', cue)}
-                currentTime={deckA.currentTime}
-                className="mt-4"
-              />
-            </div>
+              {/* Hot Cues - Conditional for Mobile */}
+              {!isMobile && (
+                <HotCueSystem
+                  hotCues={deckA.hotCues}
+                  onSetCue={(cue, pos) => handleSetHotCue('A', cue, pos)}
+                  onJumpToCue={(cue) => handleJumpToCue('A', cue)}
+                  onDeleteCue={(cue) => handleDeleteCue('A', cue)}
+                  currentTime={deckA.currentTime}
+                  className="mt-4"
+                />
+              )}
 
-            {/* Mixer */}
-            <div className="bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-              <h2 className="text-xl font-bold text-center mb-6">Mixer</h2>
-              
-              {/* Crossfader */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium mb-4 text-center">Crossfader</label>
-                <div className="relative">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={crossfaderPosition}
-                    onChange={(e) => handleCrossfader(Number(e.target.value))}
-                    className="w-full h-8 bg-gray-700 rounded-lg appearance-none slider"
-                  />
-                  <div className="flex justify-between text-xs mt-2">
-                    <span>A</span>
-                    <span className="font-bold">{crossfaderPosition}%</span>
-                    <span>B</span>
+              {/* Mobile Hot Cues - Simplified */}
+              {isMobile && deckA.hotCues.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-medium text-white mb-2">Hot Cues</h4>
+                  <div className="grid grid-cols-4 gap-1">
+                    {deckA.hotCues.slice(0, 4).map((cue, index) => (
+                      <button
+                        key={cue.id}
+                        onClick={() => handleJumpToCue('A', cue.id)}
+                        className="p-2 bg-blue-600 hover:bg-blue-700 rounded text-xs text-white"
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Mixer - Mobile Optimized */}
+            <div className={`
+              bg-black bg-opacity-40 backdrop-blur-sm rounded-xl border border-gray-700
+              ${isMobile ? 'p-4 order-first' : 'p-6'}
+            `}>
+              <h2 className={`font-bold text-center ${isMobile ? 'text-lg mb-4' : 'text-xl mb-6'}`}>
+                Mixer
+              </h2>
+              
+              {/* Crossfader - Hidden on Mobile (in Quick Controls) */}
+              {!isMobile && (
+                <div className="mb-8">
+                  <label className="block text-sm font-medium mb-4 text-center">Crossfader</label>
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={crossfaderPosition}
+                      onChange={(e) => handleCrossfader(Number(e.target.value))}
+                      className="w-full h-8 bg-gray-700 rounded-lg appearance-none slider"
+                    />
+                    <div className="flex justify-between text-xs mt-2">
+                      <span>A</span>
+                      <span className="font-bold">{crossfaderPosition}%</span>
+                      <span>B</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Performance Metrics */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Performance</h3>
+              <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-4'}`}>
+                <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
+                  Performance
+                </h3>
                 {Object.entries(performance).map(([key, value]) => (
                   <div key={key}>
-                    <div className="flex justify-between text-sm mb-1">
+                    <div className={`flex justify-between mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       <span className="capitalize">{key.replace('_', ' ')}</span>
                       <span>{value}%</span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className={`w-full bg-gray-700 rounded-full ${isMobile ? 'h-1.5' : 'h-2'}`}>
                       <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
-                        style={{ width: `${value}%` }}
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${value}%`,
+                          height: isMobile ? '6px' : '8px'
+                        }}
                       />
                     </div>
                   </div>
@@ -767,15 +925,21 @@ const DJPlatformProduction: React.FC = () => {
               </div>
 
               {/* Blockchain Stats */}
-              <div className="mt-6 space-y-3">
-                <h3 className="text-lg font-semibold">Blockchain</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{tokenBalance.toLocaleString()}</div>
+              <div className={`mt-4 space-y-3 ${isMobile ? 'mt-3' : 'mt-6'}`}>
+                <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
+                  Blockchain
+                </h3>
+                <div className={`grid grid-cols-2 gap-3 ${isMobile ? 'gap-2' : 'gap-4'}`}>
+                  <div className="text-center bg-gray-800 bg-opacity-50 p-3 rounded-lg">
+                    <div className={`font-bold text-yellow-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                      {tokenBalance.toLocaleString()}
+                    </div>
                     <div className="text-xs text-gray-400">MIX Tokens</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-400">${earnings.toFixed(2)}</div>
+                  <div className="text-center bg-gray-800 bg-opacity-50 p-3 rounded-lg">
+                    <div className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                      ${earnings.toFixed(2)}
+                    </div>
                     <div className="text-xs text-gray-400">Earnings</div>
                   </div>
                 </div>
@@ -783,16 +947,24 @@ const DJPlatformProduction: React.FC = () => {
             </div>
 
             {/* Deck B */}
-            <div className="bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-purple-400">Deck B</h2>
+            <div className={`
+              bg-black bg-opacity-40 backdrop-blur-sm rounded-xl border border-gray-700
+              ${isMobile ? 'p-4' : 'p-6'}
+            `}>
+              <div className="flex justify-between items-center mb-3 md:mb-4">
+                <h2 className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                  Deck B
+                </h2>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 
-                           rounded transition-colors text-sm"
+                  className={`
+                    flex items-center gap-2 bg-purple-600 hover:bg-purple-700 
+                    rounded transition-colors
+                    ${isMobile ? 'px-2 py-2 text-xs' : 'px-3 py-2 text-sm'}
+                  `}
                 >
-                  <Upload className="w-4 h-4" />
-                  Load Track
+                  <Upload className="w-3 h-3 md:w-4 md:h-4" />
+                  {!isMobile && 'Load Track'}
                 </button>
               </div>
 
@@ -888,8 +1060,9 @@ const DJPlatformProduction: React.FC = () => {
             </div>
           </div>
 
-          {/* Loop Systems */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* Loop Systems - Hidden on Mobile */}
+          {!isMobile && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <LoopSystem
               loop={deckA.loop}
               currentTime={deckA.currentTime}
@@ -919,8 +1092,50 @@ const DJPlatformProduction: React.FC = () => {
               }}
               onLoopRoll={() => {}} // Implement loop roll
             />
-          </div>
+            </div>
+          )}
+
+          {/* Mobile Gesture Overlay */}
+          {isMobile && (
+            <div className="mt-4 bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+              <h3 className="text-lg font-bold mb-3 text-center">Touch Controls</h3>
+              <div className="grid grid-cols-2 gap-4 text-center text-sm">
+                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
+                  <div className="text-blue-400 font-medium mb-1">Swipe Gestures</div>
+                  <div className="text-xs text-gray-400">
+                    Swipe left/right on waveform to seek
+                  </div>
+                </div>
+                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
+                  <div className="text-purple-400 font-medium mb-1">Tap Controls</div>
+                  <div className="text-xs text-gray-400">
+                    Tap waveform to set cue points
+                  </div>
+                </div>
+                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
+                  <div className="text-green-400 font-medium mb-1">Pinch Zoom</div>
+                  <div className="text-xs text-gray-400">
+                    Pinch to zoom waveform view
+                  </div>
+                </div>
+                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
+                  <div className="text-yellow-400 font-medium mb-1">Long Press</div>
+                  <div className="text-xs text-gray-400">
+                    Long press for hot cue options
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Mobile Overlay - Close sidebar when tapping outside */}
+        {isMobile && isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

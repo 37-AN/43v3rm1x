@@ -335,27 +335,39 @@ const DJPlatformMVP = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
       {/* Audio Notification */}
       {showAudioNotification && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
+        <div className="fixed top-4 right-4 left-4 md:left-auto bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             <span>Audio System Ready! 🎵</span>
           </div>
         </div>
       )}
+      
       {/* Header */}
       <header className="bg-black/20 backdrop-blur-lg border-b border-gray-800">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Disc3 className="w-8 h-8 text-blue-500 animate-spin" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                MixChain AI
-              </h1>
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+            {/* Logo and Title */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <Disc3 className="w-6 h-6 md:w-8 md:h-8 text-blue-500 animate-spin" />
+                <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  MixChain AI
+                </h1>
+              </div>
+              
+              {/* Mobile Menu Button */}
+              <button 
+                onClick={() => setActiveTab(activeTab === 'mixer' ? 'library' : 'mixer')}
+                className="md:hidden p-2 bg-gray-700 rounded-lg"
+              >
+                <Music className="w-5 h-5" />
+              </button>
             </div>
             
             {/* Audio Status Indicator - Only show when not initialized */}
             {!audioInitialized && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center md:justify-start space-x-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
                 <span className="text-sm text-gray-300">
                   Initializing Audio...
@@ -363,7 +375,8 @@ const DJPlatformMVP = () => {
               </div>
             )}
             
-            <nav className="flex space-x-6">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex space-x-6">
               <button
                 onClick={() => setActiveTab('mixer')}
                 className={`px-4 py-2 rounded-lg transition-colors ${
@@ -390,12 +403,13 @@ const DJPlatformMVP = () => {
               </button>
             </nav>
 
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded-lg">
-                <Coins className="w-4 h-4 text-yellow-500" />
-                <span className="font-mono">{tokenBalance}</span>
+            {/* Token Balance and Go Live */}
+            <div className="flex items-center justify-between md:justify-end space-x-2 md:space-x-4">
+              <div className="flex items-center space-x-2 bg-gray-800 px-2 md:px-3 py-1 md:py-2 rounded-lg">
+                <Coins className="w-3 h-3 md:w-4 md:h-4 text-yellow-500" />
+                <span className="font-mono text-sm md:text-base">{tokenBalance}</span>
               </div>
-              <button className="bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-colors">
+              <button className="bg-gradient-to-r from-blue-500 to-purple-500 px-3 md:px-4 py-1 md:py-2 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-colors text-sm md:text-base">
                 Go Live
               </button>
             </div>
