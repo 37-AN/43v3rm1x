@@ -10,8 +10,9 @@ const DJPlatformMVP = () => {
   const [tokenBalance, setTokenBalance] = useState(1250);
   const [earnings] = useState(89.50);
   const [activeTab, setActiveTab] = useState('mixer');
+  const [audioInitialized, setAudioInitialized] = useState(false);
 
-  // Simulated audio context for demo
+  // Simple audio context for demo
   const audioContext = useRef<AudioContext | null>(null);
   const [tracks] = useState([
     { id: 1, name: "Summer Vibes", artist: "DJ Alex", bpm: 128, key: "Am", genre: "House", plays: 15420 },
@@ -21,6 +22,26 @@ const DJPlatformMVP = () => {
 
   const [loadedTracks, setLoadedTracks] = useState({ deck1: tracks[0], deck2: tracks[1] });
 
+  // Initialize audio context on user interaction
+  const initializeAudio = async () => {
+    try {
+      if (!audioContext.current) {
+        audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      if (audioContext.current.state === 'suspended') {
+        await audioContext.current.resume();
+      }
+      
+      setAudioInitialized(true);
+      console.log('Audio context initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+      // Continue anyway for demo purposes
+      setAudioInitialized(true);
+    }
+  };
+
   // Simulated AI BPM sync
   useEffect(() => {
     if (aiSyncEnabled && loadedTracks.deck1 && loadedTracks.deck2) {
@@ -29,8 +50,14 @@ const DJPlatformMVP = () => {
     }
   }, [aiSyncEnabled, loadedTracks]);
 
-  const handlePlay = (deck: string) => {
+  const handlePlay = async (deck: string) => {
+    // Initialize audio on first play
+    if (!audioInitialized) {
+      await initializeAudio();
+    }
+    
     setIsPlaying(prev => ({ ...prev, [deck]: !prev[deck] }));
+    
     // Simulate earning tokens when playing
     if (!isPlaying[deck]) {
       setTimeout(() => setTokenBalance(prev => prev + 5), 1000);
@@ -41,27 +68,66 @@ const DJPlatformMVP = () => {
     setLoadedTracks(prev => ({ ...prev, [deck]: track }));
   };
 
-  const Waveform = ({ isActive, track }: { isActive: boolean; track: any }) => (
-    <div className="h-16 bg-gray-900 rounded-lg p-2 mb-4">
-      <div className="flex items-end h-full space-x-1">
-        {Array.from({ length: 50 }, (_, i) => (
-          <div
-            key={i}
-            className={`bg-gradient-to-t ${
-              isActive 
-                ? 'from-blue-500 to-cyan-400 animate-pulse' 
-                : 'from-gray-600 to-gray-500'
-            } rounded-sm`}
-            style={{ 
-              height: `${Math.random() * 100}%`,
-              width: '2px',
-              animationDelay: `${i * 50}ms`
-            }}
-          />
-        ))}
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, deck: string) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Simulate track loading
+      const newTrack = {
+        id: Date.now(),
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        artist: "Uploaded Track",
+        bpm: Math.floor(Math.random() * 40) + 120, // Random BPM between 120-160
+        key: ["C", "Am", "G", "Em", "F", "Dm"][Math.floor(Math.random() * 6)],
+        genre: "Uploaded",
+        plays: 0
+      };
+      
+      setLoadedTracks(prev => ({ ...prev, [deck]: newTrack }));
+      setTokenBalance(prev => prev + 10); // Reward for uploading
+    }
+  };
+
+  const Waveform = ({ isActive, track }: { isActive: boolean; track: any }) => {
+    const [waveformData, setWaveformData] = useState<number[]>([]);
+    
+    // Generate realistic waveform data
+    useEffect(() => {
+      if (isActive) {
+        const generateWaveform = () => {
+          const data = Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2);
+          setWaveformData(data);
+        };
+        
+        generateWaveform();
+        const interval = setInterval(generateWaveform, 100);
+        return () => clearInterval(interval);
+      } else {
+        setWaveformData(Array.from({ length: 50 }, () => Math.random() * 0.3 + 0.1));
+      }
+    }, [isActive]);
+    
+    return (
+      <div className="h-16 bg-gray-900 rounded-lg p-2 mb-4">
+        <div className="flex items-end h-full space-x-1">
+          {waveformData.map((height, i) => (
+            <div
+              key={i}
+              className={`bg-gradient-to-t ${
+                isActive 
+                  ? 'from-blue-500 to-cyan-400 animate-pulse' 
+                  : 'from-gray-600 to-gray-500'
+              } rounded-sm transition-all duration-75`}
+              style={{ 
+                height: `${height * 100}%`,
+                width: '2px',
+                animationDelay: `${i * 20}ms`
+              }}
+            />
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const DeckComponent = ({ deckId, track, isPlaying: deckPlaying }: { deckId: string; track: any; isPlaying: boolean }) => (
     <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
@@ -121,6 +187,25 @@ const DJPlatformMVP = () => {
             onChange={(e) => setVolume(prev => ({ ...prev, [deckId]: parseInt(e.target.value) }))}
             className="w-full mt-1 accent-blue-500"
           />
+        </div>
+        
+        {/* File Upload */}
+        <div className="mt-4">
+          <label className="block text-gray-300 text-sm mb-2">Upload Track</label>
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={(e) => handleFileUpload(e, deckId)}
+            className="hidden"
+            id={`file-upload-${deckId}`}
+          />
+          <label
+            htmlFor={`file-upload-${deckId}`}
+            className="block w-full text-center px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg cursor-pointer transition-colors text-sm"
+          >
+            <Upload className="w-4 h-4 inline mr-2" />
+            Choose File
+          </label>
         </div>
       </div>
     </div>
@@ -208,6 +293,14 @@ const DJPlatformMVP = () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 MixChain AI
               </h1>
+            </div>
+            
+            {/* Audio Status Indicator */}
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${audioInitialized ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+              <span className="text-sm text-gray-300">
+                {audioInitialized ? 'Audio Ready' : 'Click Play to Initialize Audio'}
+              </span>
             </div>
             
             <nav className="flex space-x-6">

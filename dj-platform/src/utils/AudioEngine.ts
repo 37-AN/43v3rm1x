@@ -369,7 +369,12 @@ export class AudioEngine {
    */
   async resumeContext(): Promise<void> {
     if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+      try {
+        await this.audioContext.resume();
+      } catch (error) {
+        console.warn('Audio context resume failed, continuing anyway:', error);
+        // Continue even if resume fails - some browsers don't require user interaction
+      }
     }
   }
 

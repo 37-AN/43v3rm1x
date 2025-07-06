@@ -105,10 +105,22 @@ const DJPlatformProduction: React.FC = () => {
     const initAudio = async () => {
       try {
         audioEngineRef.current = new AudioEngine();
-        await audioEngineRef.current.resumeContext();
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Audio initialization timeout')), 5000);
+        });
+        
+        await Promise.race([
+          audioEngineRef.current.resumeContext(),
+          timeoutPromise
+        ]);
+        
         setIsInitialized(true);
       } catch (error) {
         console.error('Failed to initialize audio:', error);
+        // Set initialized anyway to prevent infinite loading
+        setIsInitialized(true);
       }
     };
 
@@ -412,6 +424,12 @@ const DJPlatformProduction: React.FC = () => {
                          rounded-full mx-auto mb-4"></div>
           <h2 className="text-xl font-bold mb-2">Initializing Audio Engine</h2>
           <p className="text-gray-300">Setting up professional DJ platform...</p>
+          <button 
+            onClick={() => setIsInitialized(true)}
+            className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+          >
+            Skip Audio Setup
+          </button>
         </div>
       </div>
     );
