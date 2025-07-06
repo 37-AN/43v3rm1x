@@ -457,7 +457,7 @@ const DJPlatformProduction: React.FC = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 hover:bg-gray-700 rounded-lg"
+              className="md:hidden p-2 hover:bg-gray-700 rounded-lg touch-manipulation"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -499,11 +499,25 @@ const DJPlatformProduction: React.FC = () => {
           ${isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
           ${isMobile ? 'fixed' : 'md:relative'} w-full md:w-80 lg:w-96 
           ${isMobile ? 'h-screen' : 'h-full'}
-          bg-black bg-opacity-40 backdrop-blur-sm border-r border-gray-700 
+          bg-black bg-opacity-50 backdrop-blur-sm border-r border-gray-700 
           transition-transform duration-300 z-50 overflow-y-auto
           ${isMobile ? 'top-0 left-0 pt-20' : ''}
         `}>
           
+          {/* Mobile Back Button */}
+          {isMobile && (
+            <div className="p-4 border-b border-gray-700">
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 
+                         bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors mb-4"
+              >
+                <X className="w-5 h-5" />
+                Back to Mixer
+              </button>
+            </div>
+          )}
+
           {/* Visualizer Selection */}
           <div className="p-4 border-b border-gray-700">
             <h3 className="text-lg font-semibold mb-4">Visual Engine</h3>
@@ -621,8 +635,20 @@ const DJPlatformProduction: React.FC = () => {
         {/* Main DJ Console */}
         <div className={`flex-1 p-2 md:p-4 ${isMobile ? 'overflow-visible pb-20' : 'overflow-y-auto'}`}>
           
-          {/* Visualizer - Responsive Height */}
+          {/* Visualizer - Responsive Height with Mobile Controls */}
           <div className="mb-4 md:mb-6 rounded-xl overflow-hidden border border-gray-700">
+            {isMobile && (
+              <div className="bg-black bg-opacity-50 p-2 flex justify-between items-center border-b border-gray-600">
+                <span className="text-sm font-medium">Visual: {activeVisualizer}</span>
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors touch-manipulation"
+                >
+                  <Eye className="w-4 h-4 inline mr-1" />
+                  Change
+                </button>
+              </div>
+            )}
             <div className="h-48 md:h-64 lg:h-80">
               {renderVisualizer()}
             </div>
@@ -635,28 +661,34 @@ const DJPlatformProduction: React.FC = () => {
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-base font-bold">Quick Controls</h3>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handlePlay('A')}
-                    disabled={!deckA.track}
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center transition-all
-                      ${deckA.isPlaying ? 'bg-red-600' : 'bg-green-600'}
-                      disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
-                    `}
-                  >
-                    {deckA.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={() => handlePlay('B')}
-                    disabled={!deckB.track}
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center transition-all
-                      ${deckB.isPlaying ? 'bg-red-600' : 'bg-green-600'}
-                      disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
-                    `}
-                  >
-                    {deckB.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </button>
+                  <div className="flex flex-col items-center gap-1">
+                    <button
+                      onClick={() => handlePlay('A')}
+                      disabled={!deckA.track}
+                      className={`
+                        w-12 h-12 rounded-full flex items-center justify-center transition-all
+                        ${deckA.isPlaying ? 'bg-red-600' : 'bg-green-600'}
+                        disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
+                      `}
+                    >
+                      {deckA.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                    </button>
+                    <span className="text-xs text-gray-300">A</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <button
+                      onClick={() => handlePlay('B')}
+                      disabled={!deckB.track}
+                      className={`
+                        w-12 h-12 rounded-full flex items-center justify-center transition-all
+                        ${deckB.isPlaying ? 'bg-red-600' : 'bg-green-600'}
+                        disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
+                      `}
+                    >
+                      {deckB.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                    </button>
+                    <span className="text-xs text-gray-300">B</span>
+                  </div>
                 </div>
               </div>
               
@@ -681,6 +713,33 @@ const DJPlatformProduction: React.FC = () => {
                 </div>
               </div>
               
+              {/* Upload Controls - Mobile */}
+              <div className="mb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex flex-col items-center justify-center p-2 bg-gray-700 hover:bg-gray-600 rounded-lg cursor-pointer transition-colors text-xs touch-manipulation min-h-12">
+                    <Upload className="w-4 h-4 mb-1" />
+                    Load A
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => handleFileUpload(e, 'A')}
+                      className="hidden"
+                    />
+                  </label>
+                  <label className="flex flex-col items-center justify-center p-2 bg-gray-700 hover:bg-gray-600 rounded-lg cursor-pointer transition-colors text-xs touch-manipulation min-h-12">
+                    <Upload className="w-4 h-4 mb-1" />
+                    Load B
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => handleFileUpload(e, 'B')}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
               {/* Recording Button - Compact */}
               <div>
                 {!isRecording ? (
