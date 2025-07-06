@@ -6,7 +6,7 @@ services:
     staticPublishPath: ./dj-platform/build
     envVars:
       - key: NODE_VERSION
-        value: 18.17.0
+        value: 20.11.0
       - key: CI
         value: true
     autoDeploy: true
