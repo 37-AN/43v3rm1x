@@ -223,16 +223,6 @@ const DJPlatformEnhanced = () => {
               Mixer
             </button>
             <button 
-              onClick={() => setActiveTab('visualizers')}
-              style={{
-                ...buttonStyle,
-                background: activeTab === 'visualizers' ? '#3b82f6' : 'rgba(255,255,255,0.1)',
-                color: 'white'
-              }}
-            >
-              Visualizers
-            </button>
-            <button 
               onClick={() => setActiveTab('library')}
               style={{
                 ...buttonStyle,
@@ -490,7 +480,7 @@ const DJPlatformEnhanced = () => {
                     style={{ 
                       width: '100%', 
                       height: '16px',
-                      writingMode: 'bt-lr',
+                      writingMode: 'vertical-lr' as any,
                       WebkitAppearance: 'slider-vertical'
                     }}
                   />
@@ -560,73 +550,6 @@ const DJPlatformEnhanced = () => {
           </div>
         )}
 
-        {activeTab === 'visualizers' && (
-          <div style={cardStyle}>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', textAlign: 'center' }}>
-              Advanced Visualizer Gallery
-            </h2>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Neural Harmony Constellation</h3>
-                <NeuralHarmonyConstellation
-                  audioData={[...audioData.deck1, ...audioData.deck2]}
-                  isPlaying={isPlaying.deck1 || isPlaying.deck2}
-                  bpm={(tempo.deck1 + tempo.deck2) / 2}
-                  musicalKey={loadedTracks.deck1?.key || 'C'}
-                  harmonicCompatibility={calculateHarmonicCompatibility()}
-                  aiPredictions={aiPredictions}
-                />
-              </div>
-              
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Blockchain Beat Sculptor</h3>
-                <BlockchainBeatSculptor
-                  audioData={[...audioData.deck1, ...audioData.deck2]}
-                  isPlaying={isPlaying.deck1 || isPlaying.deck2}
-                  genre={loadedTracks.deck1?.genre || 'House'}
-                  energy={getTrackEnergy()}
-                  tokenBalance={tokenBalance}
-                  recentTransactions={recentTransactions}
-                  royaltyPayments={royaltyPayments}
-                />
-              </div>
-              
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Quantum Mix Reactor</h3>
-                <QuantumMixReactor
-                  audioDataDeck1={audioData.deck1}
-                  audioDataDeck2={audioData.deck2}
-                  crossfaderPosition={crossfaderPosition}
-                  isPlaying1={isPlaying.deck1}
-                  isPlaying2={isPlaying.deck2}
-                  bpm1={tempo.deck1}
-                  bpm2={tempo.deck2}
-                  aiPredictions={aiPredictions.map(p => ({
-                    optimalCrossfaderPosition: p.mixPoint,
-                    confidence: p.confidence,
-                    harmonicMatch: p.harmonicMatch
-                  }))}
-                  onCollisionEvent={handleVisualizerCollision}
-                />
-              </div>
-              
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Synaptic Sound Networks</h3>
-                <SynapticSoundNetworks
-                  audioDataDeck1={audioData.deck1}
-                  audioDataDeck2={audioData.deck2}
-                  trackInfo1={loadedTracks.deck1}
-                  trackInfo2={loadedTracks.deck2}
-                  mixProgress={mixProgress}
-                  isPlaying1={isPlaying.deck1}
-                  isPlaying2={isPlaying.deck2}
-                  onNetworkFusion={handleNetworkFusion}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         {activeTab === 'library' && (
           <div style={cardStyle}>

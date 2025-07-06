@@ -56,7 +56,7 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
   onNetworkFusion
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const [networks, setNetworks] = useState<{ deck1: SoundNode[]; deck2: SoundNode[] }>({
     deck1: [],
     deck2: []
@@ -387,9 +387,13 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
         if (node.activity > 0.05) {
           // Node body
           const pulseSize = node.size + Math.sin(node.pulsePhase) * node.activity * 5;
+          const validX = isFinite(node.x) ? node.x : 400;
+          const validY = isFinite(node.y) ? node.y : 200;
+          const validPulseSize = Math.max(1, pulseSize || node.size || 8);
+          
           const nodeGradient = ctx.createRadialGradient(
-            node.x, node.y, 0,
-            node.x, node.y, pulseSize
+            validX, validY, 0,
+            validX, validY, validPulseSize
           );
           nodeGradient.addColorStop(0, `${node.color}FF`);
           nodeGradient.addColorStop(0.7, `${node.color}AA`);
@@ -397,35 +401,35 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
           
           ctx.fillStyle = nodeGradient;
           ctx.beginPath();
-          ctx.arc(node.x, node.y, pulseSize, 0, Math.PI * 2);
+          ctx.arc(validX, validY, validPulseSize, 0, Math.PI * 2);
           ctx.fill();
           
           // Node core
           ctx.fillStyle = node.color;
           ctx.beginPath();
-          ctx.arc(node.x, node.y, node.size * 0.5, 0, Math.PI * 2);
+          ctx.arc(validX, validY, Math.max(1, node.size * 0.5), 0, Math.PI * 2);
           ctx.fill();
           
           // Activity ring
           ctx.strokeStyle = `${node.color}${Math.floor(node.activity * 255).toString(16).padStart(2, '0')}`;
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(node.x, node.y, node.size + 8, 0, Math.PI * 2 * node.activity);
+          ctx.arc(validX, validY, Math.max(1, node.size + 8), 0, Math.PI * 2 * Math.max(0, node.activity));
           ctx.stroke();
           
           // Node label
           ctx.fillStyle = '#ffffff';
           ctx.font = '10px monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(node.type, node.x, node.y - node.size - 5);
+          ctx.fillText(node.type, validX, validY - Math.max(1, node.size) - 5);
           
           // Frequency indicator
           ctx.fillStyle = '#cccccc';
           ctx.font = '8px monospace';
           ctx.fillText(
             `${(node.frequency / 1000).toFixed(1)}k`,
-            node.x,
-            node.y + node.size + 15
+            validX,
+            validY + Math.max(1, node.size) + 15
           );
         }
       });
@@ -521,8 +525,15 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
   }, [trackInfo2]);
 
   useEffect(() => {
+    const animateLoop = () => {
+      updateNetworks();
+      detectNetworkFusion();
+      drawNetwork();
+      animationRef.current = requestAnimationFrame(animateLoop);
+    };
+
     if (isPlaying1 || isPlaying2) {
-      animationRef.current = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animateLoop);
     } else {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);

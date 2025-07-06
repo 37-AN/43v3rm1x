@@ -38,7 +38,7 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
   royaltyPayments = []
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const [terrain, setTerrain] = useState<TerrainPoint[][]>([]);
   const [transactionStreams, setTransactionStreams] = useState<BlockchainTransaction[]>([]);
   const [landscapeTheme, setLandscapeTheme] = useState<string>('default');
@@ -181,7 +181,8 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
         const blockchainGlow = avgBlockchain * 0.3;
         
         // Color calculation with blockchain influence
-        const hue = parseInt(theme.baseColor.match(/\d+/)?.[0] || '220') + avgBlockchain * 60;
+        const hueMatch = theme.baseColor.match(/\d+/);
+        const hue = parseInt(hueMatch?.[0] || '220') + avgBlockchain * 60;
         const saturation = 60 + audioGlow * 40;
         const brightness = lightness * 100 + audioGlow * 30 + blockchainGlow * 20;
         
@@ -245,14 +246,18 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
     const crystalY = 50 + Math.cos(Date.now() * 0.003) * 20;
     const crystalSize = 15 + (tokenBalance / 1000) * 10;
     
-    const crystalGradient = ctx.createRadialGradient(crystalX, crystalY, 0, crystalX, crystalY, crystalSize);
+    const validCrystalX = isFinite(crystalX) ? crystalX : centerX;
+    const validCrystalY = isFinite(crystalY) ? crystalY : 50;
+    const validCrystalSize = Math.max(1, crystalSize || 15);
+    
+    const crystalGradient = ctx.createRadialGradient(validCrystalX, validCrystalY, 0, validCrystalX, validCrystalY, validCrystalSize);
     crystalGradient.addColorStop(0, 'hsla(45, 100%, 80%, 0.9)');
     crystalGradient.addColorStop(0.7, 'hsla(45, 80%, 60%, 0.6)');
     crystalGradient.addColorStop(1, 'hsla(45, 60%, 40%, 0.3)');
     
     ctx.fillStyle = crystalGradient;
     ctx.beginPath();
-    ctx.arc(crystalX, crystalY, crystalSize, 0, Math.PI * 2);
+    ctx.arc(validCrystalX, validCrystalY, validCrystalSize, 0, Math.PI * 2);
     ctx.fill();
     
     // Crystal glow
@@ -276,8 +281,15 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
   }, [genre]);
 
   useEffect(() => {
+    const animateLoop = () => {
+      updateTerrain();
+      updateTransactionStreams();
+      drawLandscape();
+      animationRef.current = requestAnimationFrame(animateLoop);
+    };
+
     if (isPlaying) {
-      animationRef.current = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animateLoop);
     } else {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -289,7 +301,7 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, audioData, terrain]);
+  }, [isPlaying, audioData, terrain, recentTransactions]);
 
   const containerStyle: React.CSSProperties = {
     position: 'relative',

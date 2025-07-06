@@ -54,7 +54,7 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
   onCollisionEvent
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const [energyBeams, setEnergyBeams] = useState<{ deck1: EnergyBeam[]; deck2: EnergyBeam[] }>({
     deck1: [],
     deck2: []
@@ -334,16 +334,21 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
             const particleY = centerY + particle.y;
             const alpha = particle.life / 100;
             
+            const validParticleX = isFinite(particleX) ? particleX : centerX;
+            const validParticleY = isFinite(particleY) ? particleY : centerY;
+            const validParticleSize = Math.max(1, particle.size || 2);
+            const validAlpha = Math.max(0, Math.min(1, alpha || 0));
+
             const particleGradient = ctx.createRadialGradient(
-              particleX, particleY, 0,
-              particleX, particleY, particle.size
+              validParticleX, validParticleY, 0,
+              validParticleX, validParticleY, validParticleSize
             );
-            particleGradient.addColorStop(0, `hsla(${particle.hue}, 90%, 80%, ${alpha})`);
+            particleGradient.addColorStop(0, `hsla(${particle.hue}, 90%, 80%, ${validAlpha})`);
             particleGradient.addColorStop(1, `hsla(${particle.hue}, 70%, 60%, 0)`);
             
             ctx.fillStyle = particleGradient;
             ctx.beginPath();
-            ctx.arc(particleX, particleY, particle.size, 0, Math.PI * 2);
+            ctx.arc(validParticleX, validParticleY, validParticleSize, 0, Math.PI * 2);
             ctx.fill();
           });
         }
@@ -430,8 +435,20 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
   }, []);
 
   useEffect(() => {
+    const animateLoop = () => {
+      updateEnergyBeams();
+      detectCollisions();
+      updateQuantumField();
+      drawReactor();
+      
+      // Decay reactor energy
+      setReactorEnergy(prev => Math.max(0, prev - 0.2));
+      
+      animationRef.current = requestAnimationFrame(animateLoop);
+    };
+
     if (isPlaying1 || isPlaying2) {
-      animationRef.current = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animateLoop);
     } else {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);

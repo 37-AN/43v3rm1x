@@ -32,7 +32,7 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
   aiPredictions = []
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [constellationPattern, setConstellationPattern] = useState<string>('');
 
@@ -114,15 +114,20 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
       const screenY = centerY + particle.y + Math.cos(particle.z * 0.01) * 20;
       const size = (particle.intensity + 0.2) * 3 * (particle.life / 100);
       
-      // Particle glow effect
-      const gradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, size * 2);
-      gradient.addColorStop(0, `hsla(${particle.hue}, 80%, 70%, ${particle.intensity})`);
-      gradient.addColorStop(0.5, `hsla(${particle.hue}, 60%, 50%, ${particle.intensity * 0.5})`);
+      // Particle glow effect - ensure valid values
+      const validSize = Math.max(1, Math.abs(size) || 1);
+      const validX = isFinite(screenX) ? screenX : 0;
+      const validY = isFinite(screenY) ? screenY : 0;
+      const validIntensity = Math.max(0, Math.min(1, particle.intensity || 0));
+      
+      const gradient = ctx.createRadialGradient(validX, validY, 0, validX, validY, validSize * 2);
+      gradient.addColorStop(0, `hsla(${particle.hue}, 80%, 70%, ${validIntensity})`);
+      gradient.addColorStop(0.5, `hsla(${particle.hue}, 60%, 50%, ${validIntensity * 0.5})`);
       gradient.addColorStop(1, `hsla(${particle.hue}, 40%, 30%, 0)`);
       
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
+      ctx.arc(validX, validY, validSize, 0, Math.PI * 2);
       ctx.fill();
 
       // Draw connections to nearby particles
@@ -218,8 +223,14 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
   }, [musicalKey]);
 
   useEffect(() => {
+    const animateLoop = () => {
+      updateParticles();
+      drawConstellation();
+      animationRef.current = requestAnimationFrame(animateLoop);
+    };
+
     if (isPlaying) {
-      animationRef.current = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animateLoop);
     } else {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
