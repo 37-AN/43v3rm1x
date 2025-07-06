@@ -436,8 +436,10 @@ const DJPlatformProduction: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 
-                    text-white overflow-hidden">
+    <div className={`
+      min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white
+      ${isMobile ? 'overflow-x-hidden' : 'overflow-hidden'}
+    `}>
       
       {/* Header */}
       <header className="bg-black bg-opacity-30 backdrop-blur-sm border-b border-gray-700 p-3 md:p-4">
@@ -490,14 +492,16 @@ const DJPlatformProduction: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <div className="flex flex-col md:flex-row h-screen">
+      <div className={`flex flex-col md:flex-row ${isMobile ? 'h-auto min-h-screen' : 'h-screen'}`}>
         
         {/* Sidebar - Visualizers & Controls */}
         <div className={`
           ${isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
-          fixed md:relative w-full md:w-80 lg:w-96 h-full bg-black bg-opacity-40 backdrop-blur-sm
-          border-r border-gray-700 transition-transform duration-300 z-50 overflow-y-auto
-          ${isMobile ? 'top-0 left-0' : ''}
+          ${isMobile ? 'fixed' : 'md:relative'} w-full md:w-80 lg:w-96 
+          ${isMobile ? 'h-screen' : 'h-full'}
+          bg-black bg-opacity-40 backdrop-blur-sm border-r border-gray-700 
+          transition-transform duration-300 z-50 overflow-y-auto
+          ${isMobile ? 'top-0 left-0 pt-20' : ''}
         `}>
           
           {/* Visualizer Selection */}
@@ -615,7 +619,7 @@ const DJPlatformProduction: React.FC = () => {
         </div>
 
         {/* Main DJ Console */}
-        <div className="flex-1 p-2 md:p-4 overflow-y-auto">
+        <div className={`flex-1 p-2 md:p-4 ${isMobile ? 'overflow-visible pb-20' : 'overflow-y-auto'}`}>
           
           {/* Visualizer - Responsive Height */}
           <div className="mb-4 md:mb-6 rounded-xl overflow-hidden border border-gray-700">
@@ -626,74 +630,77 @@ const DJPlatformProduction: React.FC = () => {
 
           {/* Mobile Controls - Quick Access */}
           {isMobile && (
-            <div className="mb-4 bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold">Quick Controls</h3>
+            <div className="mb-3 bg-black bg-opacity-40 backdrop-blur-sm rounded-lg p-3 border border-gray-700">
+              {/* Compact Play Controls */}
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-bold">Quick Controls</h3>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handlePlay('A')}
                     disabled={!deckA.track}
                     className={`
-                      w-12 h-12 rounded-full flex items-center justify-center transition-all
+                      w-10 h-10 rounded-full flex items-center justify-center transition-all
                       ${deckA.isPlaying ? 'bg-red-600' : 'bg-green-600'}
-                      disabled:bg-gray-600 disabled:opacity-50
+                      disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
                     `}
                   >
-                    {deckA.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                    {deckA.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => handlePlay('B')}
                     disabled={!deckB.track}
                     className={`
-                      w-12 h-12 rounded-full flex items-center justify-center transition-all
+                      w-10 h-10 rounded-full flex items-center justify-center transition-all
                       ${deckB.isPlaying ? 'bg-red-600' : 'bg-green-600'}
-                      disabled:bg-gray-600 disabled:opacity-50
+                      disabled:bg-gray-600 disabled:opacity-50 touch-manipulation
                     `}
                   >
-                    {deckB.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                    {deckB.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
               
-              {/* Mobile Crossfader */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-center">Crossfader</label>
+              {/* Mobile Crossfader - Compact */}
+              <div className="mb-3">
+                <label className="block text-xs font-medium mb-1 text-center">Crossfader</label>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   value={crossfaderPosition}
                   onChange={(e) => handleCrossfader(Number(e.target.value))}
-                  className="w-full h-8 bg-gray-700 rounded-lg appearance-none"
+                  className="w-full h-6 bg-gray-700 rounded-lg appearance-none touch-manipulation"
                   style={{
                     background: `linear-gradient(90deg, #3b82f6 0%, #3b82f6 ${crossfaderPosition}%, #6b7280 ${crossfaderPosition}%, #6b7280 100%)`
                   }}
                 />
                 <div className="flex justify-between text-xs mt-1">
-                  <span className="text-blue-400">Deck A</span>
-                  <span className="font-bold">{crossfaderPosition}%</span>
-                  <span className="text-purple-400">Deck B</span>
+                  <span className="text-blue-400">A</span>
+                  <span className="font-bold text-xs">{crossfaderPosition}%</span>
+                  <span className="text-purple-400">B</span>
                 </div>
               </div>
               
-              {/* Recording Button */}
-              <div className="flex gap-2">
+              {/* Recording Button - Compact */}
+              <div>
                 {!isRecording ? (
                   <button
                     onClick={handleStartRecording}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 
-                             bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 
+                             bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-sm
+                             touch-manipulation min-h-10"
                   >
-                    <Radio className="w-4 h-4" />
+                    <Radio className="w-3 h-3" />
                     Record
                   </button>
                 ) : (
                   <button
                     onClick={handleStopRecording}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 
-                             bg-red-600 hover:bg-red-700 rounded-lg transition-colors animate-pulse"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 
+                             bg-red-600 hover:bg-red-700 rounded-lg transition-colors animate-pulse text-sm
+                             touch-manipulation min-h-10"
                   >
-                    <Save className="w-4 h-4" />
+                    <Save className="w-3 h-3" />
                     Stop ({formatTime(recordingTime)})
                   </button>
                 )}
@@ -771,7 +778,7 @@ const DJPlatformProduction: React.FC = () => {
               )}
 
               {/* Deck Controls */}
-              <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-4'}`}>
+              <div className={`${isMobile ? 'space-y-1' : 'space-y-4'}`}>
                 {!isMobile && (
                   <div className="flex justify-center">
                     <button
@@ -793,8 +800,8 @@ const DJPlatformProduction: React.FC = () => {
 
                 {/* Volume */}
                 <div>
-                  <label className={`block font-medium mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                    Volume ({deckA.volume}%)
+                  <label className={`block font-medium ${isMobile ? 'text-xs mb-1' : 'text-sm mb-2'}`}>
+                    Vol ({deckA.volume}%)
                   </label>
                   <input
                     type="range"
@@ -802,39 +809,41 @@ const DJPlatformProduction: React.FC = () => {
                     max="100"
                     value={deckA.volume}
                     onChange={(e) => handleVolumeChange('A', Number(e.target.value))}
-                    className={`w-full ${isMobile ? 'h-6' : 'h-8'} bg-gray-700 rounded-lg appearance-none`}
+                    className={`w-full ${isMobile ? 'h-5' : 'h-8'} bg-gray-700 rounded-lg appearance-none touch-manipulation`}
                     style={{
                       background: `linear-gradient(90deg, #3b82f6 0%, #3b82f6 ${deckA.volume}%, #374151 ${deckA.volume}%, #374151 100%)`
                     }}
                   />
                 </div>
 
-                {/* EQ - Compact for Mobile */}
-                <div className={`space-y-2 ${isMobile ? 'space-y-1' : 'space-y-2'}`}>
+                {/* EQ - Ultra Compact for Mobile */}
+                <div className={`${isMobile ? 'space-y-1' : 'space-y-2'}`}>
                   <label className={`block font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     EQ
                   </label>
-                  {(['high', 'mid', 'low'] as const).map((band) => (
-                    <div key={band} className={`flex items-center gap-2 ${isMobile ? 'gap-1' : 'gap-3'}`}>
-                      <span className={`text-xs uppercase ${isMobile ? 'w-8' : 'w-12'}`}>
-                        {band}
-                      </span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={deckA.eq[band]}
-                        onChange={(e) => handleEQChange('A', band, Number(e.target.value))}
-                        className={`flex-1 ${isMobile ? 'h-4' : 'h-6'} bg-gray-700 rounded-lg appearance-none`}
-                        style={{
-                          background: `linear-gradient(90deg, ${deckA.eq[band] < 0 ? '#ef4444' : '#10b981'} 0%, ${deckA.eq[band] < 0 ? '#ef4444' : '#10b981'} ${((deckA.eq[band] + 12) / 24) * 100}%, #374151 ${((deckA.eq[band] + 12) / 24) * 100}%, #374151 100%)`
-                        }}
-                      />
-                      <span className={`text-xs ${isMobile ? 'w-6' : 'w-8'}`}>
-                        {deckA.eq[band] > 0 ? '+' : ''}{deckA.eq[band]}
-                      </span>
-                    </div>
-                  ))}
+                  <div className={`${isMobile ? 'grid grid-cols-3 gap-1' : 'space-y-2'}`}>
+                    {(['high', 'mid', 'low'] as const).map((band) => (
+                      <div key={band} className={`${isMobile ? 'flex flex-col items-center' : 'flex items-center gap-3'}`}>
+                        <span className={`text-xs uppercase ${isMobile ? 'mb-1' : 'w-12'}`}>
+                          {band}
+                        </span>
+                        <input
+                          type="range"
+                          min="-12"
+                          max="12"
+                          value={deckA.eq[band]}
+                          onChange={(e) => handleEQChange('A', band, Number(e.target.value))}
+                          className={`${isMobile ? 'w-full h-4' : 'flex-1 h-6'} bg-gray-700 rounded-lg appearance-none touch-manipulation`}
+                          style={{
+                            background: `linear-gradient(90deg, ${deckA.eq[band] < 0 ? '#ef4444' : '#10b981'} 0%, ${deckA.eq[band] < 0 ? '#ef4444' : '#10b981'} ${((deckA.eq[band] + 12) / 24) * 100}%, #374151 ${((deckA.eq[band] + 12) / 24) * 100}%, #374151 100%)`
+                          }}
+                        />
+                        <span className={`text-xs ${isMobile ? 'mt-1' : 'w-8'}`}>
+                          {deckA.eq[band] > 0 ? '+' : ''}{deckA.eq[band]}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -901,22 +910,22 @@ const DJPlatformProduction: React.FC = () => {
               )}
 
               {/* Performance Metrics */}
-              <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-4'}`}>
-                <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
+              <div className={`${isMobile ? 'space-y-1' : 'space-y-4'}`}>
+                <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}>
                   Performance
                 </h3>
-                {Object.entries(performance).map(([key, value]) => (
+                {Object.entries(performance).slice(0, isMobile ? 2 : 4).map(([key, value]) => (
                   <div key={key}>
                     <div className={`flex justify-between mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       <span className="capitalize">{key.replace('_', ' ')}</span>
                       <span>{value}%</span>
                     </div>
-                    <div className={`w-full bg-gray-700 rounded-full ${isMobile ? 'h-1.5' : 'h-2'}`}>
+                    <div className={`w-full bg-gray-700 rounded-full ${isMobile ? 'h-1' : 'h-2'}`}>
                       <div
                         className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"
                         style={{ 
                           width: `${value}%`,
-                          height: isMobile ? '6px' : '8px'
+                          height: isMobile ? '4px' : '8px'
                         }}
                       />
                     </div>
@@ -1095,34 +1104,26 @@ const DJPlatformProduction: React.FC = () => {
             </div>
           )}
 
-          {/* Mobile Gesture Overlay */}
+          {/* Mobile Gesture Overlay - Compact */}
           {isMobile && (
-            <div className="mt-4 bg-black bg-opacity-40 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
-              <h3 className="text-lg font-bold mb-3 text-center">Touch Controls</h3>
-              <div className="grid grid-cols-2 gap-4 text-center text-sm">
-                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
-                  <div className="text-blue-400 font-medium mb-1">Swipe Gestures</div>
-                  <div className="text-xs text-gray-400">
-                    Swipe left/right on waveform to seek
-                  </div>
+            <div className="mt-3 mb-4 bg-black bg-opacity-40 backdrop-blur-sm rounded-lg p-3 border border-gray-700">
+              <h3 className="text-sm font-bold mb-2 text-center">Touch Controls</h3>
+              <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                <div className="bg-gray-800 bg-opacity-50 p-2 rounded">
+                  <div className="text-blue-400 font-medium text-xs">Tap</div>
+                  <div className="text-xs text-gray-400">Seek track</div>
                 </div>
-                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
-                  <div className="text-purple-400 font-medium mb-1">Tap Controls</div>
-                  <div className="text-xs text-gray-400">
-                    Tap waveform to set cue points
-                  </div>
+                <div className="bg-gray-800 bg-opacity-50 p-2 rounded">
+                  <div className="text-purple-400 font-medium text-xs">Swipe</div>
+                  <div className="text-xs text-gray-400">Fine control</div>
                 </div>
-                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
-                  <div className="text-green-400 font-medium mb-1">Pinch Zoom</div>
-                  <div className="text-xs text-gray-400">
-                    Pinch to zoom waveform view
-                  </div>
+                <div className="bg-gray-800 bg-opacity-50 p-2 rounded">
+                  <div className="text-green-400 font-medium text-xs">Pinch</div>
+                  <div className="text-xs text-gray-400">Zoom view</div>
                 </div>
-                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
-                  <div className="text-yellow-400 font-medium mb-1">Long Press</div>
-                  <div className="text-xs text-gray-400">
-                    Long press for hot cue options
-                  </div>
+                <div className="bg-gray-800 bg-opacity-50 p-2 rounded">
+                  <div className="text-yellow-400 font-medium text-xs">Hold</div>
+                  <div className="text-xs text-gray-400">Set cue</div>
                 </div>
               </div>
             </div>
