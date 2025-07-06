@@ -190,11 +190,6 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
     ctx.restore();
   };
 
-  const animate = () => {
-    updateParticles();
-    drawConstellation();
-    animationRef.current = requestAnimationFrame(animate);
-  };
 
   const generateConstellationNFT = () => {
     const canvas = canvasRef.current;
@@ -220,6 +215,7 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
 
   useEffect(() => {
     initializeParticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [musicalKey]);
 
   useEffect(() => {
@@ -242,6 +238,7 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, audioData, particles]);
 
   // Generate NFT when exceptional patterns occur
@@ -249,6 +246,7 @@ const NeuralHarmonyConstellation: React.FC<NeuralHarmonyConstellationProps> = ({
     if (harmonicCompatibility > 0.8 && particles.length > 100) {
       generateConstellationNFT();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [harmonicCompatibility, particles.length]);
 
   const containerStyle: React.CSSProperties = {

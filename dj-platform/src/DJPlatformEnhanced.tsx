@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Upload, Users, Zap, Coins, TrendingUp, Music, Disc3, Eye, Atom, Network, Cpu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Pause, Zap, Coins, TrendingUp, Music, Disc3, Eye, Atom, Network } from 'lucide-react';
 import NeuralHarmonyConstellation from './visualizers/NeuralHarmonyConstellation';
 import BlockchainBeatSculptor from './visualizers/BlockchainBeatSculptor';
 import QuantumMixReactor from './visualizers/QuantumMixReactor';
@@ -16,8 +16,6 @@ const DJPlatformEnhanced = () => {
   const [activeTab, setActiveTab] = useState('mixer');
   const [activeVisualizer, setActiveVisualizer] = useState('constellation');
 
-  // Simulated audio context for demo
-  const audioContext = useRef<AudioContext | null>(null);
   const [tracks] = useState([
     { id: 1, name: "Summer Vibes", artist: "DJ Alex", bpm: 128, key: "Am", genre: "House", plays: 15420 },
     { id: 2, name: "Night Drive", artist: "Luna Music", bpm: 132, key: "Gm", genre: "Techno", plays: 8932 },
@@ -34,13 +32,13 @@ const DJPlatformEnhanced = () => {
 
   // Blockchain transaction simulation
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
-  const [royaltyPayments, setRoyaltyPayments] = useState<any[]>([
+  const [royaltyPayments] = useState<any[]>([
     { artist: "DJ Alex", amount: 15.5, timestamp: Date.now() - 7200000 },
     { artist: "Luna Music", amount: 8.2, timestamp: Date.now() - 3600000 }
   ]);
 
   // AI predictions for mixing
-  const [aiPredictions, setAiPredictions] = useState<any[]>([
+  const [aiPredictions] = useState<any[]>([
     { mixPoint: 65, confidence: 0.85, harmonicMatch: 0.92 },
     { mixPoint: 35, confidence: 0.72, harmonicMatch: 0.78 }
   ]);

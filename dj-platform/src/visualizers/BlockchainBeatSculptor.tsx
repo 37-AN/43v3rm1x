@@ -41,7 +41,6 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
   const animationRef = useRef<number | undefined>(undefined);
   const [terrain, setTerrain] = useState<TerrainPoint[][]>([]);
   const [transactionStreams, setTransactionStreams] = useState<BlockchainTransaction[]>([]);
-  const [landscapeTheme, setLandscapeTheme] = useState<string>('default');
 
   const terrainSize = 40;
   const terrainScale = 8;
@@ -268,16 +267,10 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
     ctx.stroke();
   };
 
-  const animate = () => {
-    updateTerrain();
-    updateTransactionStreams();
-    drawLandscape();
-    animationRef.current = requestAnimationFrame(animate);
-  };
 
   useEffect(() => {
     initializeTerrain();
-    setLandscapeTheme(genre);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [genre]);
 
   useEffect(() => {
@@ -301,6 +294,7 @@ const BlockchainBeatSculptor: React.FC<BlockchainBeatSculptorProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, audioData, terrain, recentTransactions]);
 
   const containerStyle: React.CSSProperties = {

@@ -501,12 +501,6 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
     }
   };
 
-  const animate = () => {
-    updateNetworks();
-    detectNetworkFusion();
-    drawNetwork();
-    animationRef.current = requestAnimationFrame(animate);
-  };
 
   useEffect(() => {
     if (trackInfo1) {
@@ -514,6 +508,7 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
       setNetworks(prev => ({ ...prev, deck1: result1.nodes }));
       setConnections(prev => ({ ...prev, deck1: result1.connections }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackInfo1]);
 
   useEffect(() => {
@@ -522,6 +517,7 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
       setNetworks(prev => ({ ...prev, deck2: result2.nodes }));
       setConnections(prev => ({ ...prev, deck2: result2.connections }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackInfo2]);
 
   useEffect(() => {
@@ -545,6 +541,7 @@ const SynapticSoundNetworks: React.FC<SynapticSoundNetworksProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying1, isPlaying2, networks, connections, mixProgress]);
 
   const containerStyle: React.CSSProperties = {

@@ -165,10 +165,6 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
 
   const detectCollisions = () => {
     const currentTime = Date.now();
-    const collisionZone = {
-      x: Math.cos((crossfaderPosition / 100) * Math.PI) * reactorRadius,
-      y: Math.sin((crossfaderPosition / 100) * Math.PI) * reactorRadius
-    };
 
     // Check for particle collisions at crossfader position
     energyBeams.deck1.forEach((beam1, i) => {
@@ -308,14 +304,11 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
     // Draw energy beams
     ['deck1', 'deck2'].forEach(deckId => {
       const beams = energyBeams[deckId as keyof typeof energyBeams];
-      const deckColor = deckId === 'deck1' ? 'cyan' : 'magenta';
       const baseHue = deckId === 'deck1' ? 180 : 300;
       
       beams.forEach(beam => {
         if (beam.intensity > 0.1) {
           // Draw beam line
-          const startAngle = beam.angle - 0.05;
-          const endAngle = beam.angle + 0.05;
           const beamLength = reactorRadius + beam.intensity * 50;
           
           ctx.strokeStyle = `hsla(${baseHue}, 80%, 60%, ${beam.intensity})`;
@@ -418,20 +411,10 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
     });
   };
 
-  const animate = () => {
-    updateEnergyBeams();
-    detectCollisions();
-    updateQuantumField();
-    drawReactor();
-    
-    // Decay reactor energy
-    setReactorEnergy(prev => Math.max(0, prev - 0.2));
-    
-    animationRef.current = requestAnimationFrame(animate);
-  };
 
   useEffect(() => {
     initializeEnergyBeams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -460,6 +443,7 @@ const QuantumMixReactor: React.FC<QuantumMixReactorProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying1, isPlaying2, audioDataDeck1, audioDataDeck2, crossfaderPosition]);
 
   const containerStyle: React.CSSProperties = {
